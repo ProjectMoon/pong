@@ -31,10 +31,15 @@
 var g_canvas;
 var g_ctx;
 
+//keep track of scores
 var score = {
 	p1: 0,
 	p2: 0
 };
+
+//various constants
+var FIELD_UPPER_BOUND = 35;
+var SCORE_OFFSET = 100;
 
 /*
 0			1			 2			  3			4			 5			  6			7			 8			  9
@@ -89,11 +94,16 @@ Paddle.prototype.halfWidth = 10;
 Paddle.prototype.halfHeight = 50;
 
 Paddle.prototype.update = function () {
-	 if (g_keys[this.GO_UP]) {
-		  this.cy -= 5;
-	 } else if (g_keys[this.GO_DOWN]) {
-		  this.cy += 5;
-	 }
+	if (g_keys[this.GO_UP]) {
+		if (this.cy - this.halfHeight - 5 >= FIELD_UPPER_BOUND) {
+			this.cy -= 5;
+		}
+	}
+	else if (g_keys[this.GO_DOWN]) {
+		if (this.cy + this.halfHeight + 5 < g_canvas.height) {
+			this.cy += 5;
+		}
+	}
 };
 
 Paddle.prototype.render = function (ctx) {
@@ -262,9 +272,8 @@ function updateSimulation() {
 function renderScore(ctx, score) {
 	ctx.font = 'bold 40px arial';
 
-	var offset = 100;
-	ctx.fillText(score.p1, offset, 35);
-	ctx.fillText(score.p2, g_canvas.width - offset, 35);
+	ctx.fillText(score.p1, SCORE_OFFSET, FIELD_UPPER_BOUND);
+	ctx.fillText(score.p2, g_canvas.width - SCORE_OFFSET, FIELD_UPPER_BOUND);
 }
 
 // Togglable Pause Mode

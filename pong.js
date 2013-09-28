@@ -46,6 +46,10 @@ var SCORE_OFFSET = 100;
 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 */
 
+function info(text) {
+	document.getElementById('info').innerText = text;
+}
+
 // =================
 // KEYBOARD HANDLING
 // =================
@@ -148,6 +152,13 @@ Paddle.prototype.render = function (ctx) {
 					  this.cy - this.halfHeight,
 					  this.halfWidth * 2,
 					  this.halfHeight * 2);
+
+
+	ctx.save();
+	ctx.strokeStyle = '#0000FF';
+	var hb = this.hitbox();
+	ctx.strokeRect(hb.left, hb.top, hb.width, hb.height);
+	ctx.restore();
 };
 
 Paddle.prototype.collidesWith = function (prevX, prevY, 
@@ -167,6 +178,31 @@ Paddle.prototype.collidesWith = function (prevX, prevY,
 	 // It's a miss!
 	 return false;
 };
+
+Paddle.prototype.hitbox = function() {
+	var rect = {
+		left: this.cx - this.halfWidth,
+		top: this.cy - this.halfHeight,
+		right: this.cx + this.halfWidth * 2,
+		bottom: this.cy + this.halfHeight * 2,
+		height: this.halfHeight * 2,
+		width: this.halfWidth * 2
+	};
+
+	return rect;
+};
+
+Paddle.prototype.collidesWithRect = function(rect) {
+	var thisRect = this.hitbox();
+	return rectangleIntersection(thisRect, rect);
+};
+
+function rectangleIntersection(r1, r2) {
+ return !(r2.left > r1.right || 
+           r2.right < r1.left || 
+           r2.top > r1.bottom ||
+           r2.bottom < r1.top);
+}
 
 // PADDLE 1
 
@@ -213,6 +249,26 @@ function Ball(descr) {
 	 }
 }
 
+Ball.prototype.hitbox = function() {
+	/*
+	 0----1
+	 |    |
+	 |    |
+	 2----3
+	 x1,y1 = top left
+	 x2,y2 = bottom right
+	 */
+
+	var rect = {};
+	rect.left = this.cx - this.radius;
+	rect.top = this.cy - this.radius;
+	rect.right = rect.left + this.radius * 2;
+	rect.bottom = rect.top + this.radius * 2;
+	rect.width = this.radius * 2;
+	rect.height = this.radius * 2;
+	return rect;
+};
+
 Ball.prototype.update = function () {
 	 // Remember my previous position
 	 var prevX = this.cx;
@@ -223,12 +279,20 @@ Ball.prototype.update = function () {
 	 var nextY = prevY + this.yVel;
 
 	 // Bounce off the paddles
+	 /*
 	 if (g_paddle1.collidesWith(prevX, prevY, nextX, nextY, this.radius) ||
 		  g_paddle2.collidesWith(prevX, prevY, nextX, nextY, this.radius))
 	 {
 		  this.xVel *= -1;
 	 }
+	 */
 
+	if (g_paddle1.collidesWithRect(this.hitbox()) ||
+		 g_paddle2.collidesWithRect(this.hitbox())) {
+		this.xVel *= -1;
+//		info('collision for ' + this.cx + ',' + this.cy);
+	}
+											 
 	 // Bounce off top and bottom edges
 	 if (nextY < 0 ||										 // top edge
 		  nextY > g_canvas.height) {					 // bottom edge
@@ -270,7 +334,13 @@ Ball.prototype.reset = function () {
 };
 
 Ball.prototype.render = function (ctx) {
-	 fillCircle(ctx, this.cx, this.cy, this.radius);
+	fillCircle(ctx, this.cx, this.cy, this.radius);
+	var rect = this.hitbox();
+	ctx.save();
+	ctx.strokeStyle = '#0000FF';
+	ctx.lineWidth = 1;
+	ctx.strokeRect(rect.left, rect.top, rect.width, rect.height);
+	ctx.restore();
 };
 
 var g_ball = new Ball({

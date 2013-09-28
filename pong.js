@@ -104,6 +104,42 @@ Paddle.prototype.update = function () {
 			this.cy += 5;
 		}
 	}
+	else if (g_keys[this.GO_RIGHT]) {
+		//are we left or right?
+		var left = this.cx < g_canvas.width / 2;
+
+		if (left) {
+			var maxX = 100;
+			if (this.cx + this.halfWidth + 5 < maxX) {
+				this.cx += 5;
+			}
+		}
+		else {
+			var maxX = g_canvas.width - 100;
+
+			if (this.cx + this.halfWidth + 5 < g_canvas.width) {
+				this.cx += 5;
+			}
+		}
+	}
+	else if (g_keys[this.GO_LEFT]) {
+		//are we left or right?
+		var left = this.cx < g_canvas.width / 2;
+
+		if (left) {
+			var maxX = 100;
+			if (this.cx - this.halfWidth - 5 > 0) {
+				this.cx -= 5;
+			}
+		}
+		else {
+			var maxX = g_canvas.width - 100;
+
+			if (this.cx - this.halfWidth - 5 > maxX) {
+				this.cx -= 5;
+			}
+		}
+	}
 };
 
 Paddle.prototype.render = function (ctx) {
@@ -136,26 +172,34 @@ Paddle.prototype.collidesWith = function (prevX, prevY,
 
 var KEY_W = 'W'.charCodeAt(0);
 var KEY_S = 'S'.charCodeAt(0);
+var KEY_A = 'A'.charCodeAt(0);
+var KEY_D = 'D'.charCodeAt(0);
 
 var g_paddle1 = new Paddle({
-	 cx : 30,
-	 cy : 100,
-	 
-	 GO_UP	: KEY_W,
-	 GO_DOWN : KEY_S
+	cx : 30,
+	cy : 100,
+	
+	GO_UP	: KEY_W,
+	GO_DOWN : KEY_S,
+	GO_LEFT : KEY_A,
+	GO_RIGHT : KEY_D
 });
 
 // PADDLE 2
 
 var KEY_I = 'I'.charCodeAt(0);
 var KEY_K = 'K'.charCodeAt(0);
+var KEY_J = 'J'.charCodeAt(0);
+var KEY_L = 'L'.charCodeAt(0);
 
 var g_paddle2 = new Paddle({
-	 cx : 370,
-	 cy : 300,
-	 
-	 GO_UP	: KEY_I,
-	 GO_DOWN : KEY_K
+	cx : 370,
+	cy : 300,
+	
+	GO_UP	: KEY_I,
+	GO_DOWN : KEY_K,
+	GO_LEFT : KEY_J,
+	GO_RIGHT : KEY_L
 });
 
 // ==========

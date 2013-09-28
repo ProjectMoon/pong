@@ -180,6 +180,11 @@ g_ball.update = function () {
         this.yVel *= -1;
     }
 
+	// bounce off left and right edges
+	if (nextX < 0 || nextX > g_canvas.width) {
+		this.xVel *= -1;
+	}
+
     // Reset if we fall off the left or right edges
     // ...by more than some arbitrary `margin`
     //

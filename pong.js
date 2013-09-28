@@ -207,17 +207,13 @@ var g_paddle2 = new Paddle({
 // ==========
 
 // BALL STUFF
+function Ball(descr) {
+	 for (var property in descr) {
+		  this[property] = descr[property];
+	 }
+}
 
-var g_ball = {
-	 cx: 50,
-	 cy: 200,
-	 radius: 10,
-
-	 xVel: 5,
-	 yVel: 4
-};
-
-g_ball.update = function () {
+Ball.prototype.update = function () {
 	 // Remember my previous position
 	 var prevX = this.cx;
 	 var prevY = this.cy;
@@ -266,16 +262,34 @@ g_ball.update = function () {
 	 this.cy += this.yVel;
 };
 
-g_ball.reset = function () {
+Ball.prototype.reset = function () {
 	 this.cx = 300;
 	 this.cy = 100;
 	 this.xVel = -5;
 	 this.yVel = 4;
 };
 
-g_ball.render = function (ctx) {
+Ball.prototype.render = function (ctx) {
 	 fillCircle(ctx, this.cx, this.cy, this.radius);
 };
+
+var g_ball = new Ball({
+	 cx: 50,
+	 cy: 200,
+	 radius: 10,
+
+	 xVel: 5,
+	 yVel: 4
+});
+
+var g_ball2 = new Ball({
+	 cx: 50,
+	 cy: 200,
+	 radius: 10,
+
+	 xVel: 2.5,
+	 yVel: 2
+});
 
 // =====
 // UTILS
@@ -308,7 +322,7 @@ function updateSimulation() {
 	 if (shouldSkipUpdate()) return;
 
 	 g_ball.update();
-	 
+	 g_ball2.update();
 	 g_paddle1.update();
 	 g_paddle2.update();
 }
@@ -343,7 +357,7 @@ function renderSimulation(ctx) {
 	renderScore(ctx, score);
 	
 	g_ball.render(ctx);
-	 
+	g_ball2.render(ctx);
 	g_paddle1.render(ctx);
 	g_paddle2.render(ctx);
 }

@@ -17,7 +17,7 @@
 * Let the user also move the paddles horizontally
   i.e. left and right within 100 pixels of the edges,
   using the 'A' and 'D' keys for the left paddle,
-  and   the 'J' and 'L' keys for the right paddle
+  and	  the 'J' and 'L' keys for the right paddle
   
 * Add a second ball, with half the velocity 
   of the first one.
@@ -31,8 +31,13 @@
 var g_canvas;
 var g_ctx;
 
+var score = {
+	p1: 0,
+	p2: 0
+};
+
 /*
-0        1         2         3         4         5         6         7         8         9
+0			1			 2			  3			4			 5			  6			7			 8			  9
 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
 */
 
@@ -43,11 +48,11 @@ var g_ctx;
 var g_keys = [];
 
 function handleKeydown(evt) {
-    g_keys[evt.keyCode] = true;
+	g_keys[evt.keyCode] = true;
 }
 
 function handleKeyup(evt) {
-    g_keys[evt.keyCode] = false;
+	 g_keys[evt.keyCode] = false;
 }
 
 // Inspects, and then clears, a key's state
@@ -56,9 +61,9 @@ function handleKeyup(evt) {
 // ..until the auto-repeat kicks in, that is.
 //
 function eatKey(keyCode) {
-    var isDown = g_keys[keyCode];
-    g_keys[keyCode] = false;
-    return isDown;
+	 var isDown = g_keys[keyCode];
+	 g_keys[keyCode] = false;
+	 return isDown;
 }
 
 window.addEventListener("keydown", handleKeydown);
@@ -72,9 +77,9 @@ window.addEventListener("keyup", handleKeyup);
 
 // A generic contructor which accepts an arbitrary descriptor object
 function Paddle(descr) {
-    for (var property in descr) {
-        this[property] = descr[property];
-    }
+	 for (var property in descr) {
+		  this[property] = descr[property];
+	 }
 }
 
 // Add these properties to the prototype, where they will serve as
@@ -84,37 +89,37 @@ Paddle.prototype.halfWidth = 10;
 Paddle.prototype.halfHeight = 50;
 
 Paddle.prototype.update = function () {
-    if (g_keys[this.GO_UP]) {
-        this.cy -= 5;
-    } else if (g_keys[this.GO_DOWN]) {
-        this.cy += 5;
-    }
+	 if (g_keys[this.GO_UP]) {
+		  this.cy -= 5;
+	 } else if (g_keys[this.GO_DOWN]) {
+		  this.cy += 5;
+	 }
 };
 
 Paddle.prototype.render = function (ctx) {
-    // (cx, cy) is the centre; must offset it for drawing
-    ctx.fillRect(this.cx - this.halfWidth,
-                 this.cy - this.halfHeight,
-                 this.halfWidth * 2,
-                 this.halfHeight * 2);
+	 // (cx, cy) is the centre; must offset it for drawing
+	 ctx.fillRect(this.cx - this.halfWidth,
+					  this.cy - this.halfHeight,
+					  this.halfWidth * 2,
+					  this.halfHeight * 2);
 };
 
 Paddle.prototype.collidesWith = function (prevX, prevY, 
-                                          nextX, nextY, 
-                                          r) {
-    var paddleEdge = this.cx;
-    // Check X coords
-    if ((nextX - r < paddleEdge && prevX - r >= paddleEdge) ||
-        (nextX + r > paddleEdge && prevX + r <= paddleEdge)) {
-        // Check Y coords
-        if (nextY + r >= this.cy - this.halfHeight &&
-            nextY - r <= this.cy + this.halfHeight) {
-            // It's a hit!
-            return true;
-        }
-    }
-    // It's a miss!
-    return false;
+														nextX, nextY, 
+														r) {
+	 var paddleEdge = this.cx;
+	 // Check X coords
+	 if ((nextX - r < paddleEdge && prevX - r >= paddleEdge) ||
+		  (nextX + r > paddleEdge && prevX + r <= paddleEdge)) {
+		  // Check Y coords
+		  if (nextY + r >= this.cy - this.halfHeight &&
+				nextY - r <= this.cy + this.halfHeight) {
+				// It's a hit!
+				return true;
+		  }
+	 }
+	 // It's a miss!
+	 return false;
 };
 
 // PADDLE 1
@@ -123,11 +128,11 @@ var KEY_W = 'W'.charCodeAt(0);
 var KEY_S = 'S'.charCodeAt(0);
 
 var g_paddle1 = new Paddle({
-    cx : 30,
-    cy : 100,
-    
-    GO_UP   : KEY_W,
-    GO_DOWN : KEY_S
+	 cx : 30,
+	 cy : 100,
+	 
+	 GO_UP	: KEY_W,
+	 GO_DOWN : KEY_S
 });
 
 // PADDLE 2
@@ -136,11 +141,11 @@ var KEY_I = 'I'.charCodeAt(0);
 var KEY_K = 'K'.charCodeAt(0);
 
 var g_paddle2 = new Paddle({
-    cx : 370,
-    cy : 300,
-    
-    GO_UP   : KEY_I,
-    GO_DOWN : KEY_K
+	 cx : 370,
+	 cy : 300,
+	 
+	 GO_UP	: KEY_I,
+	 GO_DOWN : KEY_K
 });
 
 // ==========
@@ -150,66 +155,72 @@ var g_paddle2 = new Paddle({
 // BALL STUFF
 
 var g_ball = {
-    cx: 50,
-    cy: 200,
-    radius: 10,
+	 cx: 50,
+	 cy: 200,
+	 radius: 10,
 
-    xVel: 5,
-    yVel: 4
+	 xVel: 5,
+	 yVel: 4
 };
 
 g_ball.update = function () {
-    // Remember my previous position
-    var prevX = this.cx;
-    var prevY = this.cy;
-    
-    // Compute my provisional new position (barring collisions)
-    var nextX = prevX + this.xVel;
-    var nextY = prevY + this.yVel;
+	 // Remember my previous position
+	 var prevX = this.cx;
+	 var prevY = this.cy;
+	 
+	 // Compute my provisional new position (barring collisions)
+	 var nextX = prevX + this.xVel;
+	 var nextY = prevY + this.yVel;
 
-    // Bounce off the paddles
-    if (g_paddle1.collidesWith(prevX, prevY, nextX, nextY, this.radius) ||
-        g_paddle2.collidesWith(prevX, prevY, nextX, nextY, this.radius))
-    {
-        this.xVel *= -1;
-    }
+	 // Bounce off the paddles
+	 if (g_paddle1.collidesWith(prevX, prevY, nextX, nextY, this.radius) ||
+		  g_paddle2.collidesWith(prevX, prevY, nextX, nextY, this.radius))
+	 {
+		  this.xVel *= -1;
+	 }
 
-    // Bounce off top and bottom edges
-    if (nextY < 0 ||                             // top edge
-        nextY > g_canvas.height) {               // bottom edge
-        this.yVel *= -1;
-    }
+	 // Bounce off top and bottom edges
+	 if (nextY < 0 ||										 // top edge
+		  nextY > g_canvas.height) {					 // bottom edge
+		  this.yVel *= -1;
+	 }
 
-	// bounce off left and right edges
-	if (nextX < 0 || nextX > g_canvas.width) {
+	// bounce off left and right edges, also scoring
+	if (nextX < 0) {
 		this.xVel *= -1;
+		score.p2++;
+	}
+	
+	if (nextX > g_canvas.width) {
+		this.xVel *= -1;
+		score.p1++;
 	}
 
-    // Reset if we fall off the left or right edges
-    // ...by more than some arbitrary `margin`
-    //
-    var margin = 4 * this.radius;
-    if (nextX < -margin || 
-        nextX > g_canvas.width + margin) {
-        this.reset();
-    }
+	 // Reset if we fall off the left or right edges
+	 // ...by more than some arbitrary `margin`
+	 //
+	 var margin = 4 * this.radius;
+	 if (nextX < -margin || 
+		  nextX > g_canvas.width + margin) {
+		  this.reset();
+	 }
 
-    // *Actually* update my position 
-    // ...using whatever velocity I've ended up with
-    //
-    this.cx += this.xVel;
-    this.cy += this.yVel;
+	 // *Actually* update my position 
+	 // ...using whatever velocity I've ended up with
+	 //
+	 this.cx += this.xVel;
+	 this.cy += this.yVel;
 };
 
 g_ball.reset = function () {
-    this.cx = 300;
-    this.cy = 100;
-    this.xVel = -5;
-    this.yVel = 4;
+	 this.cx = 300;
+	 this.cy = 100;
+	 this.xVel = -5;
+	 this.yVel = 4;
 };
 
 g_ball.render = function (ctx) {
-    fillCircle(ctx, this.cx, this.cy, this.radius);
+	 fillCircle(ctx, this.cx, this.cy, this.radius);
 };
 
 // =====
@@ -217,13 +228,13 @@ g_ball.render = function (ctx) {
 // =====
 
 function clearCanvas(ctx) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	 ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 }
 
 function fillCircle(ctx, x, y, r) {
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
+	 ctx.beginPath();
+	 ctx.arc(x, y, r, 0, Math.PI * 2);
+	 ctx.fill();
 }
 
 // =============
@@ -231,8 +242,8 @@ function fillCircle(ctx, x, y, r) {
 // =============
 
 function gatherInputs() {
-    // Nothing to do here!
-    // The event handlers do everything we need for now.
+	 // Nothing to do here!
+	 // The event handlers do everything we need for now.
 }
 
 // =================
@@ -240,12 +251,20 @@ function gatherInputs() {
 // =================
 
 function updateSimulation() {
-    if (shouldSkipUpdate()) return;
+	 if (shouldSkipUpdate()) return;
 
-    g_ball.update();
-    
-    g_paddle1.update();
-    g_paddle2.update();
+	 g_ball.update();
+	 
+	 g_paddle1.update();
+	 g_paddle2.update();
+}
+
+function renderScore(ctx, score) {
+	ctx.font = 'bold 40px arial';
+
+	var offset = 40;
+	ctx.fillText(score.p1, 10, offset);
+	ctx.fillText(score.p2, g_canvas.width - offset, 35);
 }
 
 // Togglable Pause Mode
@@ -256,10 +275,10 @@ var KEY_STEP  = 'O'.charCodeAt(0);
 var g_isUpdatePaused = false;
 
 function shouldSkipUpdate() {
-    if (eatKey(KEY_PAUSE)) {
-        g_isUpdatePaused = !g_isUpdatePaused;
-    }
-    return g_isUpdatePaused && !eatKey(KEY_STEP);    
+	 if (eatKey(KEY_PAUSE)) {
+		  g_isUpdatePaused = !g_isUpdatePaused;
+	 }
+	 return g_isUpdatePaused && !eatKey(KEY_STEP);	  
 }
 
 // =================
@@ -267,12 +286,13 @@ function shouldSkipUpdate() {
 // =================
 
 function renderSimulation(ctx) {
-    clearCanvas(ctx);
-    
-    g_ball.render(ctx);
-    
-    g_paddle1.render(ctx);
-    g_paddle2.render(ctx);
+	clearCanvas(ctx);
+	renderScore(ctx, score);
+	
+	g_ball.render(ctx);
+	 
+	g_paddle1.render(ctx);
+	g_paddle2.render(ctx);
 }
 
 // ========
@@ -280,20 +300,20 @@ function renderSimulation(ctx) {
 // ========
 
 function mainIter() {
-    if (!requestedQuit()) {
-        gatherInputs();
-        updateSimulation();
-        renderSimulation(g_ctx);
-    } else {
-        window.clearInterval(intervalID);
-    }
+	 if (!requestedQuit()) {
+		  gatherInputs();
+		  updateSimulation();
+		  renderSimulation(g_ctx);
+	 } else {
+		  window.clearInterval(intervalID);
+	 }
 }
 
 // Simple voluntary quit mechanism
 //
 var KEY_QUIT = 'Q'.charCodeAt(0);
 function requestedQuit() {
-    return g_keys[KEY_QUIT];
+	 return g_keys[KEY_QUIT];
 }
 
 window.onload = function() {

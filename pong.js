@@ -262,8 +262,8 @@ function updateSimulation() {
 function renderScore(ctx, score) {
 	ctx.font = 'bold 40px arial';
 
-	var offset = 40;
-	ctx.fillText(score.p1, 10, offset);
+	var offset = 100;
+	ctx.fillText(score.p1, offset, 35);
 	ctx.fillText(score.p2, g_canvas.width - offset, 35);
 }
 

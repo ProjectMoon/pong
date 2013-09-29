@@ -160,13 +160,6 @@ Paddle.prototype.render = function (ctx) {
 					  this.cy - this.halfHeight,
 					  this.halfWidth * 2,
 					  this.halfHeight * 2);
-
-
-	ctx.save();
-	ctx.strokeStyle = '#0000FF';
-	var hb = this.hitbox();
-	ctx.strokeRect(hb.left, hb.top, hb.width, hb.height);
-	ctx.restore();
 };
 
 Paddle.prototype.collidesWith = function (prevX, prevY, nextX, nextY, r) {
@@ -262,15 +255,6 @@ function Ball(descr) {
 }
 
 Ball.prototype.hitbox = function() {
-	/*
-	 0----1
-	 |		|
-	 |		|
-	 2----3
-	 x1,y1 = top left
-	 x2,y2 = bottom right
-	 */
-
 	var rect = {};
 	rect.left = this.cx - this.radius;
 	rect.top = this.cy - this.radius;
@@ -302,7 +286,23 @@ Ball.prototype.updateForCollision = function(paddle) {
 	// Compute my provisional new position (barring collisions)
 	var nextX = prevX + this.xVel;
 	var nextY = prevY + this.yVel;
-	
+
+	//solving the problem of ball phasing when paddle going sideways:
+	//-- not perfect, notably with the slower ball.
+	//   - mostly due to the simple negation of x velocity, so you
+	//     can do weird things like hit the ball from behind and have
+	//     it go the opposite direction (not very intuitive).
+	//
+	//1. switch to rectangle collision detection, as a collision is
+	//   always apparently detected in this instance.
+	//2. do not permit any velocity changes while still colliding after
+	//   the first collision has already happened. necessary so the ball
+	//   doesn't get stuck inside the rectangle hitbox.
+	//3. disable paddle collisions with this ball while the paddle that
+	//   hit it is still colliding rectangly. necessary mostly for the
+	//   slower ball, as the paddle can move past it and thus finish
+	//   the #2 condition, but produce behavior as if #2 was not
+	//   implemented.
 	if (this.allowPaddleCollision) {
 		if (!paddle.movingLeft && !paddle.movingRight) {
 			if (paddle.collidesWith(prevX, prevY, nextX, nextY, this.radius)) {
@@ -322,8 +322,9 @@ Ball.prototype.updateForCollision = function(paddle) {
 					this.xVel *= -1;
 					
 					if (paddle.movingLeft || paddle.movingRight) {
+						var self = this;
 						var condition = (function() {
-							return !this.movingLeft && !this.movingRight;
+							return !this.collidesWithRect(self.hitbox());
 						}).bind(paddle);
 
 						this.disablePaddleCollisionsUntil(condition);
@@ -391,12 +392,6 @@ Ball.prototype.reset = function () {
 
 Ball.prototype.render = function (ctx) {
 	fillCircle(ctx, this.cx, this.cy, this.radius);
-	var rect = this.hitbox();
-	ctx.save();
-	ctx.strokeStyle = '#0000FF';
-	ctx.lineWidth = 1;
-	ctx.strokeRect(rect.left, rect.top, rect.width, rect.height);
-	ctx.restore();
 };
 
 var g_ball = new Ball({

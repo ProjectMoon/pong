@@ -40,6 +40,7 @@ var score = {
 //various constants
 var FIELD_UPPER_BOUND = 35;
 var SCORE_OFFSET = 100;
+var TIME_STEP = 16.666;
 
 /*
 0			1			 2			  3			4			 5			  6			7			 8			  9
@@ -98,6 +99,9 @@ Paddle.prototype.halfWidth = 10;
 Paddle.prototype.halfHeight = 50;
 
 Paddle.prototype.update = function () {
+	this.movingLeft = false;
+	this.movingRight = false;
+	
 	if (g_keys[this.GO_UP]) {
 		if (this.cy - this.halfHeight - 5 >= FIELD_UPPER_BOUND) {
 			this.cy -= 5;
@@ -115,6 +119,7 @@ Paddle.prototype.update = function () {
 		if (left) {
 			var maxX = 100;
 			if (this.cx + this.halfWidth + 5 < maxX) {
+				this.movingRight = true;
 				this.cx += 5;
 			}
 		}
@@ -122,6 +127,7 @@ Paddle.prototype.update = function () {
 			var maxX = g_canvas.width - 100;
 
 			if (this.cx + this.halfWidth + 5 < g_canvas.width) {
+				this.movingRight = true;
 				this.cx += 5;
 			}
 		}
@@ -133,6 +139,7 @@ Paddle.prototype.update = function () {
 		if (left) {
 			var maxX = 100;
 			if (this.cx - this.halfWidth - 5 > 0) {
+				this.movingLeft = true;
 				this.cx -= 5;
 			}
 		}
@@ -140,6 +147,7 @@ Paddle.prototype.update = function () {
 			var maxX = g_canvas.width - 100;
 
 			if (this.cx - this.halfWidth - 5 > maxX) {
+				this.movingLeft = true;
 				this.cx -= 5;
 			}
 		}
@@ -161,9 +169,7 @@ Paddle.prototype.render = function (ctx) {
 	ctx.restore();
 };
 
-Paddle.prototype.collidesWith = function (prevX, prevY, 
-														nextX, nextY, 
-														r) {
+Paddle.prototype.collidesWith = function (prevX, prevY, nextX, nextY, r) {
 	 var paddleEdge = this.cx;
 	 // Check X coords
 	 if ((nextX - r < paddleEdge && prevX - r >= paddleEdge) ||
@@ -199,9 +205,9 @@ Paddle.prototype.collidesWithRect = function(rect) {
 
 function rectangleIntersection(r1, r2) {
  return !(r2.left > r1.right || 
-           r2.right < r1.left || 
-           r2.top > r1.bottom ||
-           r2.bottom < r1.top);
+		r2.right < r1.left || 
+		r2.top > r1.bottom ||
+		r2.bottom < r1.top);
 }
 
 // PADDLE 1
@@ -214,6 +220,9 @@ var KEY_D = 'D'.charCodeAt(0);
 var g_paddle1 = new Paddle({
 	cx : 30,
 	cy : 100,
+
+	movingLeft: false,
+	movingRight: false,
 	
 	GO_UP	: KEY_W,
 	GO_DOWN : KEY_S,
@@ -231,6 +240,9 @@ var KEY_L = 'L'.charCodeAt(0);
 var g_paddle2 = new Paddle({
 	cx : 370,
 	cy : 300,
+
+	movingLeft: false,
+	movingRight: false,
 	
 	GO_UP	: KEY_I,
 	GO_DOWN : KEY_K,
@@ -252,8 +264,8 @@ function Ball(descr) {
 Ball.prototype.hitbox = function() {
 	/*
 	 0----1
-	 |    |
-	 |    |
+	 |		|
+	 |		|
 	 2----3
 	 x1,y1 = top left
 	 x2,y2 = bottom right
@@ -269,29 +281,73 @@ Ball.prototype.hitbox = function() {
 	return rect;
 };
 
-Ball.prototype.update = function () {
-	 // Remember my previous position
-	 var prevX = this.cx;
-	 var prevY = this.cy;
-	 
-	 // Compute my provisional new position (barring collisions)
-	 var nextX = prevX + this.xVel;
-	 var nextY = prevY + this.yVel;
-
-	 // Bounce off the paddles
-	 /*
-	 if (g_paddle1.collidesWith(prevX, prevY, nextX, nextY, this.radius) ||
-		  g_paddle2.collidesWith(prevX, prevY, nextX, nextY, this.radius))
-	 {
-		  this.xVel *= -1;
-	 }
-	 */
-
-	if (g_paddle1.collidesWithRect(this.hitbox()) ||
-		 g_paddle2.collidesWithRect(this.hitbox())) {
-		this.xVel *= -1;
-//		info('collision for ' + this.cx + ',' + this.cy);
+Ball.prototype.disablePaddleCollisionsUntil = function(condition) {
+	this.allowPaddleCollision = false;
+	if (condition()) {
+		this.allowPaddleCollision = true;
 	}
+	else {
+		var self = this;
+		setTimeout(function() {
+			self.disablePaddleCollisionsUntil(condition);
+		}, TIME_STEP);
+	}
+};
+
+Ball.prototype.updateForCollision = function(paddle) {
+	// Remember my previous position
+	var prevX = this.cx;
+	var prevY = this.cy;
+	
+	// Compute my provisional new position (barring collisions)
+	var nextX = prevX + this.xVel;
+	var nextY = prevY + this.yVel;
+	
+	if (this.allowPaddleCollision) {
+		if (!paddle.movingLeft && !paddle.movingRight) {
+			if (paddle.collidesWith(prevX, prevY, nextX, nextY, this.radius)) {
+				if (!this.inCollision) {
+					this.inCollision = true;
+					this.xVel *= -1;
+				}
+			}
+			else {
+				this.inCollision = false;
+			}
+		}
+		else {
+			if (paddle.collidesWithRect(this.hitbox())) {
+				if (!this.inCollision) {
+					this.inCollision = true;
+					this.xVel *= -1;
+					
+					if (paddle.movingLeft || paddle.movingRight) {
+						var condition = (function() {
+							return !this.movingLeft && !this.movingRight;
+						}).bind(paddle);
+
+						this.disablePaddleCollisionsUntil(condition);
+					}
+				}
+			}
+			else {
+				this.inCollision = false;
+			}		
+		}
+	}
+};
+
+Ball.prototype.update = function () {
+	this.updateForCollision(g_paddle1);
+	this.updateForCollision(g_paddle2);
+
+	// Remember my previous position
+	var prevX = this.cx;
+	var prevY = this.cy;
+	
+	// Compute my provisional new position (barring collisions)
+	var nextX = prevX + this.xVel;
+	var nextY = prevY + this.yVel;
 											 
 	 // Bounce off top and bottom edges
 	 if (nextY < 0 ||										 // top edge
@@ -344,21 +400,27 @@ Ball.prototype.render = function (ctx) {
 };
 
 var g_ball = new Ball({
-	 cx: 50,
-	 cy: 200,
-	 radius: 10,
+	cx: 50,
+	cy: 200,
+	radius: 10,
 
-	 xVel: 5,
-	 yVel: 4
+	allowPaddleCollision: true,
+	inCollision: false,
+	
+	xVel: 5,
+	yVel: 4
 });
 
 var g_ball2 = new Ball({
-	 cx: 50,
-	 cy: 200,
-	 radius: 10,
+	cx: 50,
+	cy: 200,
+	radius: 10,
 
-	 xVel: 2.5,
-	 yVel: 2
+	allowPaddleCollision: true,
+	inCollision: false,
+
+	xVel: 2.5,
+	yVel: 2
 });
 
 // =====
@@ -460,7 +522,7 @@ window.onload = function() {
 	// ..and this is how we set it all up, by requesting a recurring periodic
 	// "timer event" which we can use as a kind of "heartbeat" for our game.
 	//
-	var intervalID = window.setInterval(mainIter, 16.666);
+	var intervalID = window.setInterval(mainIter, TIME_STEP);
 
 	//window.focus();
 };
